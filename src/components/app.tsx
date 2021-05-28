@@ -23,10 +23,10 @@ export default class App extends React.Component<Props, State> {
   }
 
   updatePreview() {
-    this.previewRef.current.innerHTML = ""
-
     try {
-      const app = new p5(p => new Function("p", this.state.code)(p),
+      const sketch = new Function("p", this.state.code)
+      this.previewRef.current.innerHTML = ""
+      const app = new p5(p => sketch(p),
                         this.previewRef.current)
     } catch(e) {
       console.log(e)
