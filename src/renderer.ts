@@ -26,6 +26,10 @@
  * ```
  */
 
-import './index.scss';
+import "./index.scss";
+import ReactDOM from "react-dom"
+import React from "react"
+import App from "./components/app"
 
-console.log('👋 This message is being logged by "renderer.js", included via webpack');
+const container = document.getElementById("App")
+ReactDOM.render(React.createElement(App), container)
