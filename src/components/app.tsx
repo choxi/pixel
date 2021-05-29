@@ -14,9 +14,20 @@ interface State {
   code: String
 }
 
+const defaultCode = `
+p.setup = () => {
+  p.createCanvas(200, 200)
+  p.background(255, 0, 0)
+}
+`
+
 export default class App extends React.Component<Props, State> {
-  state = { code: "" }
+  state = { code: defaultCode }
   previewRef: React.RefObject<HTMLDivElement> = React.createRef()
+
+  componentDidMount() {
+    this.updatePreview()
+  }
 
   handleChange(code: String) {
     this.setState({ code: code }, () => this.updatePreview())
@@ -34,14 +45,21 @@ export default class App extends React.Component<Props, State> {
   }
 
   render() {
-    return <div>
-      <AceEditor
-        name="ace"
-        theme="github"
-        mode="javascript"
-        onChange={ code => this.handleChange(code) }
-        editorProps={{ $blockScrolling: true }} />
-      <div className="preview" ref={ this.previewRef }>
+    return <div className="layout-split">
+      <div className="layout-split-halfpanel">
+        <AceEditor
+          name="ace"
+          theme="github"
+          mode="javascript"
+          defaultValue={ this.state.code }
+          width="100%"
+          height="100%"
+          showPrintMargin={ false }
+          onChange={ code => this.handleChange(code) }
+          editorProps={{ $blockScrolling: true }} />
+      </div>
+      <div className="layout-split-halfpanel">
+        <div className="preview" ref={ this.previewRef }> </div>
       </div>
     </div>
   }
