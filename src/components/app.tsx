@@ -24,6 +24,7 @@ p.setup = () => {
 export default class App extends React.Component<Props, State> {
   state = { code: defaultCode }
   previewRef: React.RefObject<HTMLDivElement> = React.createRef()
+  p: p5 = new p5(() => {})
 
   componentDidMount() {
     this.updatePreview()
@@ -34,11 +35,13 @@ export default class App extends React.Component<Props, State> {
   }
 
   updatePreview() {
+    const preview = this.previewRef.current
+    const w = { innerWidth: preview.clientWidth, innerHeight: preview.clientHeight }
+
     try {
-      const sketch = new Function("p", this.state.code)
-      this.previewRef.current.innerHTML = ""
-      const app = new p5(p => sketch(p),
-                        this.previewRef.current)
+      const sketch = new Function("p", "window", this.state.code)
+      this.p.remove()
+      this.p = new p5(p => sketch(p, w), this.previewRef.current)
     } catch(e) {
       console.log(e)
     }
@@ -59,7 +62,7 @@ export default class App extends React.Component<Props, State> {
           editorProps={{ $blockScrolling: true }} />
       </div>
       <div className="layout-split-halfpanel">
-        <div className="preview" ref={ this.previewRef }> </div>
+        <div className="preview" style={{ height: "100%" }} ref={ this.previewRef }> </div>
       </div>
     </div>
   }
