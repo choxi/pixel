@@ -1,10 +1,8 @@
-// @ts-nocheck
-
 import React from "react"
 import AceEditor from "react-ace"
 
 import "ace-builds/src-noconflict/mode-javascript"
-import "ace-builds/src-noconflict/theme-github"
+import "ace-builds/src-noconflict/theme-tomorrow"
 
 import p5 from "p5"
 
@@ -14,24 +12,33 @@ interface Props {
 
 interface State {
   code: String
-  images: [any]
+  images: Array<any>
 }
 
 const defaultCode = `
+const point = { x: 0, y: 0 }
+
 p.setup = () => {
-  p.createCanvas(200, 200)
+  p.createCanvas(window.innerWidth, window.innerHeight)
   p.background(255, 0, 0)
+}
+
+p.draw = () => {
+  p.ellipse(point.x, point.y, 10)
+  point.x += 1
+  point.y += 1
 }
 `
 
 export default class App extends React.Component<Props, State> {
-  state = { code: defaultCode, images: [] }
+  state = { code: defaultCode, images: [] as Array<any> }
   previewRef: React.RefObject<HTMLDivElement> = React.createRef()
   framesRef: React.RefObject<HTMLDivElement> = React.createRef()
   p: p5 = new p5(() => {})
-  images: [any] = []
+  images: Array<any> = []
 
   componentDidMount() {
+    //@ts-ignore
     p5.prototype.registerMethod("post", () => this.handleDraw())
     this.updatePreview()
   }
@@ -82,7 +89,7 @@ export default class App extends React.Component<Props, State> {
         <div className="layout-split-halfpanel">
           <AceEditor
             name="ace"
-            theme="github"
+            theme="tomorrow"
             mode="javascript"
             defaultValue={ this.state.code }
             width="100%"
