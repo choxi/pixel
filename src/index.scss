@@ -17,3 +17,30 @@ html, body, #App {
 .layout-split-halfpanel {
   width: 50%;
 }
+
+.layout-hstack {
+  display: flex;
+  overflow: scroll;
+}
+
+.layout-hstack-anchorRight {
+  scroll-snap-align: end;
+}
+
+.layout-vstack {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.layout-vstack-top {
+  flex-grow: 2;
+}
+
+.layout-vstack-bottom {
+  height: 100px;
+}
+
+.timeline-frame img {
+  width: 50px;
+}
