@@ -5,6 +5,7 @@ import "ace-builds/src-noconflict/mode-javascript"
 import "ace-builds/src-noconflict/theme-tomorrow"
 
 import p5 from "p5"
+import * as acorn from "acorn"
 
 interface Props {
 
@@ -12,7 +13,7 @@ interface Props {
 
 interface State {
   code: String
-  images: Array<any>
+  snapshots: Array<Snapshot>
   play: Boolean
 }
 
@@ -31,25 +32,41 @@ p.draw = () => {
 }
 `
 
+function debug() {
+  debugger
+}
+
+class Snapshot {
+  imageURL: string
+  state: string
+
+  constructor(imageURL: string, state: object) {
+    this.imageURL = imageURL
+    this.state = JSON.stringify(state)
+  }
+}
+
 export default class App extends React.Component<Props, State> {
-  state = { code: defaultCode, images: [] as Array<any>, play: false }
+  state = { code: defaultCode, snapshots: []as Array<Snapshot>, play: false }
   previewRef: React.RefObject<HTMLDivElement> = React.createRef()
   framesRef: React.RefObject<HTMLDivElement> = React.createRef()
   p: p5
-  images: Array<any> = []
+  debugState: any = {}
 
   componentDidMount() {
     //@ts-ignore
     p5.prototype.registerMethod("post", () => this.handleDraw())
+    //@ts-ignore
+    // p5.prototype.registerMethod("post", debug)
     this.updatePreview()
   }
 
   handleDraw() {
     const canvas = this.previewRef.current.querySelector("canvas")
-    // this.images.push(canvas.toDataURL())
-    this.state.images.push(canvas.toDataURL())
-    this.setState({ images: this.state.images }, () => {
+    const snapshot = new Snapshot(canvas.toDataURL(), this.debugState)
 
+    this.state.snapshots.push(snapshot)
+    this.setState({ snapshots: this.state.snapshots }, () => {
       this.framesRef.current.scrollBy(this.framesRef.current.scrollWidth, 0)
     })
   }
@@ -62,11 +79,22 @@ export default class App extends React.Component<Props, State> {
     const preview = this.previewRef.current
     const w = { innerWidth: preview.clientWidth, innerHeight: preview.clientHeight }
     const { code, play } = this.state
+    const parsed = acorn.parse(code, { ecmaVersion: 2020 })
+    //@ts-ignore
+    const variables = parsed.body.filter(n => n.type === "VariableDeclaration")
+    //@ts-ignore
+    const names = variables.map(n => n.declarations.map(d => d.id.name)).flat()
+    //@ts-ignore
+    const namesToProps = names.map(name => `__debugState.${ name } = ${ name }`)
+    const debugCode = `
+      ${ code }
+      ${ namesToProps.join("\n") }
+    `
 
     try {
-      const sketch = new Function("p", "window", code)
+      const sketch = new Function("p", "window", "__debugState", debugCode)
       this.p?.remove()
-      this.p = new p5(p => sketch(p, w), preview)
+      this.p = new p5(p => sketch(p, w, this.debugState), preview)
 
       if (!play) {
         this.p.noLoop()
@@ -88,9 +116,10 @@ export default class App extends React.Component<Props, State> {
     // We need to set useWorker=false to fix the `Failed to
     // execute 'importScripts' on 'WorkerGlobalScope'` error
     // https://github.com/securingsincity/react-ace/issues/725
-    const timelineFrames = this.state.images.map((image, index) => {
+    const timelineFrames = this.state.snapshots.map((snapshot, index) => {
       return <div key={ index } className="timeline-frame">
-        <img src={ image } />
+        <img src={ snapshot.imageURL } />
+        <div>{ snapshot.state }</div>
       </div>
     })
 
@@ -108,7 +137,8 @@ export default class App extends React.Component<Props, State> {
               showPrintMargin={ false }
               onChange={ code => this.handleChange(code) }
               editorProps={{ $blockScrolling: true }}
-              setOptions={{ useWorker: false }} />
+              setOptions={{ useWorker: false }}
+              fontSize={ 14 } />
           </div>
           <div className="layout-split-halfpanel">
             <div className="preview" style={{ height: "100%" }} ref={ this.previewRef }> </div>
