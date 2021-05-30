@@ -13,6 +13,7 @@ interface Props {
 interface State {
   code: String
   images: Array<any>
+  play: Boolean
 }
 
 const defaultCode = `
@@ -31,7 +32,7 @@ p.draw = () => {
 `
 
 export default class App extends React.Component<Props, State> {
-  state = { code: defaultCode, images: [] as Array<any> }
+  state = { code: defaultCode, images: [] as Array<any>, play: false }
   previewRef: React.RefObject<HTMLDivElement> = React.createRef()
   framesRef: React.RefObject<HTMLDivElement> = React.createRef()
   p: p5 = new p5(() => {})
@@ -53,10 +54,6 @@ export default class App extends React.Component<Props, State> {
     })
   }
 
-  saveTimeline() {
-    this.setState({ images: this.images }, () => this.images = [])
-  }
-
   handleChange(code: String) {
     this.setState({ code: code }, () => this.updatePreview())
   }
@@ -64,14 +61,27 @@ export default class App extends React.Component<Props, State> {
   updatePreview() {
     const preview = this.previewRef.current
     const w = { innerWidth: preview.clientWidth, innerHeight: preview.clientHeight }
+    const { code, play } = this.state
 
     try {
-      const sketch = new Function("p", "window", this.state.code)
+      const sketch = new Function("p", "window", code)
       this.p.remove()
-      this.p = new p5(p => sketch(p, w), this.previewRef.current)
+      this.p = new p5(p => sketch(p, w), preview)
+
+      if (!play) {
+        this.p.noLoop()
+      }
     } catch(e) {
       console.log(e)
     }
+  }
+
+  play() {
+    this.setState({ play: true }, () => this.p.loop())
+  }
+
+  pause() {
+    this.setState({ play: false }, () => this.p.noLoop())
   }
 
   render() {
@@ -105,7 +115,9 @@ export default class App extends React.Component<Props, State> {
       </div>
       <div className="timeline">
         <h1>Timeline</h1>
-        <button onClick={ () => this.saveTimeline() }>Debug</button>
+        <button onClick={ () => this.play() }>Play</button>
+        <button onClick={ () => this.pause() }>Pause</button>
+
         <div className="layout-hstack layout-hstack-anchorRight" ref={ this.framesRef }>
           { timelineFrames }
         </div>
