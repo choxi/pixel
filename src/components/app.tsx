@@ -35,7 +35,7 @@ export default class App extends React.Component<Props, State> {
   state = { code: defaultCode, images: [] as Array<any>, play: false }
   previewRef: React.RefObject<HTMLDivElement> = React.createRef()
   framesRef: React.RefObject<HTMLDivElement> = React.createRef()
-  p: p5 = new p5(() => {})
+  p: p5
   images: Array<any> = []
 
   componentDidMount() {
@@ -65,7 +65,7 @@ export default class App extends React.Component<Props, State> {
 
     try {
       const sketch = new Function("p", "window", code)
-      this.p.remove()
+      this.p?.remove()
       this.p = new p5(p => sketch(p, w), preview)
 
       if (!play) {
@@ -95,30 +95,33 @@ export default class App extends React.Component<Props, State> {
     })
 
     return <div className="layout-vstack">
-      <div className="layout-split">
-        <div className="layout-split-halfpanel">
-          <AceEditor
-            name="ace"
-            theme="tomorrow"
-            mode="javascript"
-            defaultValue={ this.state.code }
-            width="100%"
-            height="100%"
-            showPrintMargin={ false }
-            onChange={ code => this.handleChange(code) }
-            editorProps={{ $blockScrolling: true }}
-            setOptions={{ useWorker: false }} />
-        </div>
-        <div className="layout-split-halfpanel">
-          <div className="preview" style={{ height: "100%" }} ref={ this.previewRef }> </div>
+      <div className="layout-vstack-top">
+        <div className="layout-split">
+          <div className="layout-split-halfpanel">
+            <AceEditor
+              name="ace"
+              theme="tomorrow"
+              mode="javascript"
+              defaultValue={ this.state.code }
+              width="100%"
+              height="100%"
+              showPrintMargin={ false }
+              onChange={ code => this.handleChange(code) }
+              editorProps={{ $blockScrolling: true }}
+              setOptions={{ useWorker: false }} />
+          </div>
+          <div className="layout-split-halfpanel">
+            <div className="preview" style={{ height: "100%" }} ref={ this.previewRef }> </div>
+          </div>
         </div>
       </div>
-      <div className="timeline">
-        <h1>Timeline</h1>
-        <button onClick={ () => this.play() }>Play</button>
-        <button onClick={ () => this.pause() }>Pause</button>
+      <div className="layout-vstack-bottom timeline">
+        <div className="layout-hstack-centered">
+          <button onClick={ () => this.play() }>Play</button>
+          <button onClick={ () => this.pause() }>Pause</button>
+        </div>
 
-        <div className="layout-hstack layout-hstack-anchorRight" ref={ this.framesRef }>
+        <div className="layout-hstack" ref={ this.framesRef }>
           { timelineFrames }
         </div>
       </div>
