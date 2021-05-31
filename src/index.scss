@@ -18,6 +18,10 @@ html, body, #App {
   width: 50%;
 }
 
+.scroll-y {
+  overflow-y: scroll;
+}
+
 .layout-hstack {
   display: flex;
   overflow: scroll;
@@ -31,23 +35,18 @@ html, body, #App {
 
 .layout-vstack {
   height: 100%;
-  display: flex;
-  flex-direction: column;
 }
 
 .layout-vstack-top {
-  flex-grow: 1;
+  height: 80%;
 }
 
 .layout-vstack-bottom {
-  flex-grow: 0;
+  height: 20%;
 }
 
-$timeline-height: 200px;
-
 .timeline {
-  height: $timeline-height;
-  background: #333;
+  background: #222;
 }
 
 .timeline-frame {

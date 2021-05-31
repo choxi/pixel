@@ -19,6 +19,7 @@ interface State {
 
 const defaultCode = `
 const point = { x: 0, y: 0 }
+let x, y = 10
 
 p.setup = () => {
   p.createCanvas(window.innerWidth, window.innerHeight)
@@ -76,24 +77,26 @@ export default class App extends React.Component<Props, State> {
   }
 
   updatePreview() {
-    const preview = this.previewRef.current
-    const w = { innerWidth: preview.clientWidth, innerHeight: preview.clientHeight }
-    const { code, play } = this.state
-    const parsed = acorn.parse(code, { ecmaVersion: 2020 })
-    //@ts-ignore
-    const variables = parsed.body.filter(n => n.type === "VariableDeclaration")
-    //@ts-ignore
-    const names = variables.map(n => n.declarations.map(d => d.id.name)).flat()
-    //@ts-ignore
-    const namesToProps = names.map(name => `__debugState.${ name } = ${ name }`)
-    const debugCode = `
-      ${ code }
-      ${ namesToProps.join("\n") }
-    `
-
+    console.log("updatePreview")
     try {
+      const preview = this.previewRef.current
+      const w = { innerWidth: preview.clientWidth, innerHeight: preview.clientHeight }
+      const { code, play } = this.state
+      const parsed = acorn.parse(code, { ecmaVersion: 2020 })
+      //@ts-ignore
+      const variables = parsed.body.filter(n => n.type === "VariableDeclaration")
+      //@ts-ignore
+      const names = variables.map(n => n.declarations.map(d => d.id.name)).flat()
+      //@ts-ignore
+      const namesToProps = names.map(name => `__debugState.${ name } = ${ name }`)
+      const debugCode = `
+        ${ code }
+        ${ namesToProps.join("\n") }
+      `
+
       const sketch = new Function("p", "window", "__debugState", debugCode)
       this.p?.remove()
+      console.log("new sketch")
       this.p = new p5(p => sketch(p, w, this.debugState), preview)
 
       if (!play) {
@@ -126,7 +129,7 @@ export default class App extends React.Component<Props, State> {
     return <div className="layout-vstack">
       <div className="layout-vstack-top">
         <div className="layout-split">
-          <div className="layout-split-halfpanel">
+          <div className="layout-split-halfpanel scroll-y">
             <AceEditor
               name="ace"
               theme="tomorrow"
