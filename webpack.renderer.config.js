@@ -11,6 +11,11 @@ rules.push({
   use: [{ loader: 'style-loader' }, { loader: 'css-loader' }, { loader: 'sass-loader' }],
 });
 
+rules.push({
+  test: /\.(svg|eot|woff|woff2|ttf)$/,
+  use: [{ loader: 'file-loader' }]
+});
+
 module.exports = {
   module: {
     rules,
