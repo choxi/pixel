@@ -7,6 +7,10 @@ import "ace-builds/src-noconflict/theme-tomorrow"
 import p5 from "p5"
 import * as acorn from "acorn"
 
+// Convenient way to load p5 library for iframe
+//@ts-ignore
+// import url from "file-loader!p5"
+
 interface Props {
 
 }
@@ -82,6 +86,11 @@ export default class App extends React.Component<Props, State> {
       const preview = this.previewRef.current
       const w = { innerWidth: preview.clientWidth, innerHeight: preview.clientHeight }
       const { code, play } = this.state
+      // TODO: If the parse fails, check code for errors anyway so we can
+      // return an error message. The acorn parser won't catch e.g. `ReferenceError`s.
+      //
+      // Error line number is always eval error line minus 3
+      // https://stackoverflow.com/questions/3526902/tracing-the-source-line-of-an-error-in-a-javascript-eval
       const parsed = acorn.parse(code, { ecmaVersion: 2020 })
       //@ts-ignore
       const variables = parsed.body.filter(n => n.type === "VariableDeclaration")
@@ -93,12 +102,14 @@ export default class App extends React.Component<Props, State> {
         ${ code }
         ${ namesToProps.join("\n") }
       `
-
       const sketch = new Function("p", "window", "__debugState", debugCode)
-      this.p?.remove()
+      // TODO: Don't remove the old sketch until the new one works
+      const oldP = this.p
       console.log("new sketch")
       this.p = new p5(p => sketch(p, w, this.debugState), preview)
+      oldP?.remove()
 
+      console.log(`play: ${ play }`)
       if (!play) {
         this.p.noLoop()
       }
@@ -108,6 +119,7 @@ export default class App extends React.Component<Props, State> {
   }
 
   play() {
+    // TODO: Make sure canvas is setup before calling `loop`
     this.setState({ play: true }, () => this.p.loop())
   }
 
@@ -154,6 +166,18 @@ export default class App extends React.Component<Props, State> {
       </div>
       <div className="layout-vstack-bottom timeline">
         <div className="layout-hstack-centered pad-n-l">
+          {/* <iframe srcDoc={`
+            <html>
+              <body>
+                <script src="${ url }"></script>
+                <script>
+                  function setup() {
+                    background(255, 0, 0)
+                  }
+                </script>
+              </body>
+            </html>
+          `} /> */}
           <button onClick={ () => this.restart() }>
             <i className="fas fa-redo text-light text-large spc"></i>
           </button>
