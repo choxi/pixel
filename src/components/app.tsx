@@ -115,6 +115,10 @@ export default class App extends React.Component<Props, State> {
     this.setState({ play: false }, () => this.p.noLoop())
   }
 
+  restart() {
+
+  }
+
   render() {
     // We need to set useWorker=false to fix the `Failed to
     // execute 'importScripts' on 'WorkerGlobalScope'` error
@@ -149,9 +153,16 @@ export default class App extends React.Component<Props, State> {
         </div>
       </div>
       <div className="layout-vstack-bottom timeline">
-        <div className="layout-hstack-centered">
-          <button onClick={ () => this.play() }>Play</button>
-          <button onClick={ () => this.pause() }>Pause</button>
+        <div className="layout-hstack-centered pad-n-l">
+          <button onClick={ () => this.restart() }>
+            <i className="fas fa-redo text-light text-large spc"></i>
+          </button>
+          <button onClick={ () => this.play() }>
+            <i className="fas fa-play text-light text-large spc"></i>
+          </button>
+          <button onClick={ () => this.pause() }>
+            <i className="fas fa-pause text-light text-large spc"></i>
+          </button>
         </div>
 
         <div className="layout-hstack" ref={ this.framesRef }>
