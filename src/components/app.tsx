@@ -20,6 +20,7 @@ interface State {
   snapshots: Array<Snapshot>
   play: boolean
   selectedSnapshot?: Snapshot
+  lastSnapshotID?: number
 }
 
 const defaultCode = `
@@ -45,8 +46,10 @@ function debug() {
 class Snapshot {
   imageURL: string
   state: string
+  id: number
 
-  constructor(imageURL: string, state: object) {
+  constructor(id: number, imageURL: string, state: object) {
+    this.id = id
     this.imageURL = imageURL
     this.state = JSON.stringify(state)
   }
@@ -68,11 +71,13 @@ export default class App extends React.Component<Props, State> {
   }
 
   handleDraw() {
+    const { lastSnapshotID } = this.state
     const canvas = this.previewRef.current.querySelector("canvas")
-    const snapshot = new Snapshot(canvas.toDataURL(), this.debugState)
+    const id = (lastSnapshotID !== null) ? lastSnapshotID + 1 : 0
+    const snapshot = new Snapshot(id, canvas.toDataURL(), this.debugState)
 
     this.state.snapshots.push(snapshot)
-    this.setState({ snapshots: this.state.snapshots }, () => {
+    this.setState({ snapshots: this.state.snapshots, lastSnapshotID: id }, () => {
       this.framesRef.current.scrollBy(this.framesRef.current.scrollWidth, 0)
     })
   }
@@ -119,7 +124,7 @@ export default class App extends React.Component<Props, State> {
 
   play() {
     // TODO: Make sure canvas is setup before calling `loop`
-    this.setState({ play: true, selectedSnapshot: null }, () => this.p.loop())
+    this.setState({ play: true, selectedSnapshot: null, lastSnapshotID: null }, () => this.p.loop())
   }
 
   pause() {
@@ -134,13 +139,24 @@ export default class App extends React.Component<Props, State> {
     this.setState({ selectedSnapshot: snapshot })
   }
 
+  snapshotSelectionStyle(snapshot: Snapshot) {
+    const { selectedSnapshot } = this.state
+
+    if (!selectedSnapshot) {
+      return ""
+    }
+
+    return selectedSnapshot.id === snapshot.id ? "timeline-frame--selected" : ""
+  }
+
+
   render() {
     const { selectedSnapshot } = this.state
     // We need to set useWorker=false to fix the `Failed to
     // execute 'importScripts' on 'WorkerGlobalScope'` error
     // https://github.com/securingsincity/react-ace/issues/725
     const timelineFrames = this.state.snapshots.map((snapshot, index) => {
-      return <div key={ index } className="timeline-frame">
+      return <div key={ index } className={ `timeline-frame ${ this.snapshotSelectionStyle(snapshot) }` }>
         <img src={ snapshot.imageURL } onClick={ () => this.selectSnapshot(snapshot) } />
         {/* <div>{ snapshot.state }</div> */}
       </div>

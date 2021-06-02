@@ -55,9 +55,16 @@ button {
   img {
     z-index: 10;
     height: 50px;
+    border: 1px solid transparent;
 
     &:hover {
-      border: 2px solid black;
+      border: 1px solid white;
+    }
+  }
+
+  &.timeline-frame--selected {
+    img {
+      border: 1px solid white;
     }
   }
 }
