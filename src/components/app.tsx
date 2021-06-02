@@ -143,11 +143,11 @@ export default class App extends React.Component<Props, State> {
     })
 
     return <div className="layout-vstack">
-      <div className="layout-vstack-top">
+      <div className="layout-fill">
         <div className="layout-split">
           <div className="layout-split-halfpanel">
-            <div className="layout-vstack">
-              <div className="layout-vstack-top scroll-y">
+            <div className="layout-vert">
+              <div className="layout-vert-top scroll-y">
                 <AceEditor
                   name="ace"
                   theme="tomorrow"
@@ -162,7 +162,7 @@ export default class App extends React.Component<Props, State> {
                   fontSize={ 14 } />
               </div>
 
-              <div className="console layout-vstack-bottom">
+              <div className="console layout-vert-bottom">
                 Console
               </div>
             </div>
@@ -172,8 +172,11 @@ export default class App extends React.Component<Props, State> {
           </div>
         </div>
       </div>
-      <div className="layout-vstack-bottom timeline">
-        <div className="layout-hstack-centered pad-n-l">
+      <div className="timeline">
+        <div className="layout-hstack pad-n" ref={ this.framesRef }>
+          { timelineFrames }
+        </div>
+        <div className="layout-hstack-centered">
           {/* <iframe srcDoc={`
             <html>
               <body>
@@ -195,10 +198,6 @@ export default class App extends React.Component<Props, State> {
           <button onClick={ () => this.pause() }>
             <i className="fas fa-pause text-light text-large spc"></i>
           </button>
-        </div>
-
-        <div className="layout-hstack" ref={ this.framesRef }>
-          { timelineFrames }
         </div>
       </div>
     </div>

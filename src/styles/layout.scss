@@ -20,15 +20,34 @@
 }
 
 .layout-vstack {
+  display: flex;
+  flex-direction: column;
   height: 100%;
 }
 
-.layout-vstack-top {
+.layout-fill {
+  flex-grow: 1;
+  overflow: hidden;
+}
+
+.layout-vert{
+  height: 100%;
+}
+
+.layout-vert-top {
   height: 80%;
 }
 
-.layout-vstack-bottom {
+.layout-vert-top-85 {
+  height: 85%;
+}
+
+.layout-vert-bottom {
   height: 20%;
+}
+
+.layout-vert-bottom-15 {
+  height: 15%;
 }
 
 .layout-absolute {
