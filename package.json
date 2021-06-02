@@ -1,8 +1,8 @@
 {
   "name": "pixel",
-  "productName": "pixel",
+  "productName": "Pixel",
   "version": "1.0.0",
-  "description": "My Electron application description",
+  "description": "An IDE for p5js",
   "main": ".webpack/main",
   "scripts": {
     "start": "electron-forge start",
@@ -19,7 +19,21 @@
   "license": "MIT",
   "config": {
     "forge": {
-      "packagerConfig": {},
+      "packagerConfig": {
+        "icon": "./src/assets/icon.icns"
+      },
+      "publishers": [
+        {
+          "name": "@electron-forge/publisher-github",
+          "config": {
+            "repository": {
+              "owner": "choxi",
+              "name": "pixel"
+            },
+            "prerelease": true
+          }
+        }
+      ],
       "makers": [
         {
           "name": "@electron-forge/maker-squirrel",
@@ -69,6 +83,7 @@
     "@electron-forge/maker-squirrel": "^6.0.0-beta.57",
     "@electron-forge/maker-zip": "^6.0.0-beta.57",
     "@electron-forge/plugin-webpack": "6.0.0-beta.57",
+    "@electron-forge/publisher-github": "^6.0.0-beta.57",
     "@marshallofsound/webpack-asset-relocator-loader": "^0.5.0",
     "@types/p5": "^0.9.1",
     "@types/react": "^17.0.8",
