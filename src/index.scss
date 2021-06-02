@@ -60,3 +60,13 @@ button {
     }
   }
 }
+
+.console {
+  z-index: 4;
+  width: 100%;
+  background: #EEE;
+  padding: 1em;
+  border-top: 1px solid #333;
+  font-family: monospace;
+  box-sizing: border-box;
+}

@@ -138,26 +138,34 @@ export default class App extends React.Component<Props, State> {
     const timelineFrames = this.state.snapshots.map((snapshot, index) => {
       return <div key={ index } className="timeline-frame">
         <img src={ snapshot.imageURL } />
-        <div>{ snapshot.state }</div>
+        {/* <div>{ snapshot.state }</div> */}
       </div>
     })
 
     return <div className="layout-vstack">
       <div className="layout-vstack-top">
         <div className="layout-split">
-          <div className="layout-split-halfpanel scroll-y">
-            <AceEditor
-              name="ace"
-              theme="tomorrow"
-              mode="javascript"
-              defaultValue={ this.state.code }
-              width="100%"
-              height="100%"
-              showPrintMargin={ false }
-              onChange={ code => this.handleChange(code) }
-              editorProps={{ $blockScrolling: true }}
-              setOptions={{ useWorker: false }}
-              fontSize={ 14 } />
+          <div className="layout-split-halfpanel">
+            <div className="layout-vstack">
+              <div className="layout-vstack-top scroll-y">
+                <AceEditor
+                  name="ace"
+                  theme="tomorrow"
+                  mode="javascript"
+                  defaultValue={ this.state.code }
+                  width="100%"
+                  height="100%"
+                  showPrintMargin={ false }
+                  onChange={ code => this.handleChange(code) }
+                  editorProps={{ $blockScrolling: true }}
+                  setOptions={{ useWorker: false }}
+                  fontSize={ 14 } />
+              </div>
+
+              <div className="console layout-vstack-bottom">
+                Console
+              </div>
+            </div>
           </div>
           <div className="layout-split-halfpanel">
             <div className="preview" style={{ height: "100%" }} ref={ this.previewRef }> </div>
