@@ -16,9 +16,10 @@ interface Props {
 }
 
 interface State {
-  code: String
+  code: string
   snapshots: Array<Snapshot>
-  play: Boolean
+  play: boolean
+  selectedSnapshot?: Snapshot
 }
 
 const defaultCode = `
@@ -52,7 +53,7 @@ class Snapshot {
 }
 
 export default class App extends React.Component<Props, State> {
-  state = { code: defaultCode, snapshots: []as Array<Snapshot>, play: false }
+  state: State = { code: defaultCode, snapshots: []as Array<Snapshot>, play: false }
   previewRef: React.RefObject<HTMLDivElement> = React.createRef()
   framesRef: React.RefObject<HTMLDivElement> = React.createRef()
   p: p5
@@ -76,7 +77,7 @@ export default class App extends React.Component<Props, State> {
     })
   }
 
-  handleChange(code: String) {
+  handleChange(code: string) {
     this.setState({ code: code }, () => this.updatePreview())
   }
 
@@ -105,11 +106,9 @@ export default class App extends React.Component<Props, State> {
       const sketch = new Function("p", "window", "__debugState", debugCode)
       // TODO: Don't remove the old sketch until the new one works
       const oldP = this.p
-      console.log("new sketch")
       this.p = new p5(p => sketch(p, w, this.debugState), preview)
       oldP?.remove()
 
-      console.log(`play: ${ play }`)
       if (!play) {
         this.p.noLoop()
       }
@@ -120,7 +119,7 @@ export default class App extends React.Component<Props, State> {
 
   play() {
     // TODO: Make sure canvas is setup before calling `loop`
-    this.setState({ play: true }, () => this.p.loop())
+    this.setState({ play: true, selectedSnapshot: null }, () => this.p.loop())
   }
 
   pause() {
@@ -131,16 +130,26 @@ export default class App extends React.Component<Props, State> {
 
   }
 
+  selectSnapshot(snapshot: Snapshot) {
+    this.setState({ selectedSnapshot: snapshot })
+  }
+
   render() {
+    const { selectedSnapshot } = this.state
     // We need to set useWorker=false to fix the `Failed to
     // execute 'importScripts' on 'WorkerGlobalScope'` error
     // https://github.com/securingsincity/react-ace/issues/725
     const timelineFrames = this.state.snapshots.map((snapshot, index) => {
       return <div key={ index } className="timeline-frame">
-        <img src={ snapshot.imageURL } />
+        <img src={ snapshot.imageURL } onClick={ () => this.selectSnapshot(snapshot) } />
         {/* <div>{ snapshot.state }</div> */}
       </div>
     })
+
+    let snapshot
+    if (selectedSnapshot) {
+      snapshot = <img className="layout-absolute-over" style={{ height: "100%", width: "100%" }} src={ selectedSnapshot.imageURL } />
+    }
 
     return <div className="layout-vstack">
       <div className="layout-fill">
@@ -163,12 +172,19 @@ export default class App extends React.Component<Props, State> {
               </div>
 
               <div className="console layout-vert-bottom">
-                Console
+                <p className="spc-n-zero">Console</p>
+                {
+                  selectedSnapshot?.state
+                }
               </div>
             </div>
           </div>
           <div className="layout-split-halfpanel">
-            <div className="preview" style={{ height: "100%" }} ref={ this.previewRef }> </div>
+            <div className="layout-absolute" style={{ height: "100%", width: "100%" }} >
+              <div className="preview layout-absolute-over" style={{ height: "100%", width: "100%" }} ref={ this.previewRef }>
+              </div>
+              { snapshot }
+            </div>
           </div>
         </div>
       </div>
