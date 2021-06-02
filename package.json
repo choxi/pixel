@@ -9,7 +9,12 @@
     "package": "electron-forge package",
     "make": "electron-forge make",
     "publish": "electron-forge publish",
-    "lint": "eslint --ext .ts ."
+    "lint": "eslint --ext .ts .",
+    "make-icons": "npm run icons:1 && npm run icons:2 && npm run icons:3 && npm run icons:4",
+    "icons:1": "electron-icon-maker --input=./src/assets/icon.png --output=./src/assets",
+    "icons:2": "mv ./src/assets/icons/win/icon.ico ./src/assets/icon.ico",
+    "icons:3": "mv ./src/assets/icons/mac/icon.icns ./src/assets/icon.icns",
+    "icons:4": "rm -rf ./src/assets/icons"
   },
   "keywords": [],
   "author": {
@@ -20,7 +25,7 @@
   "config": {
     "forge": {
       "packagerConfig": {
-        "icon": "./src/assets/icon.icns"
+        "icon": "./src/assets/icon"
       },
       "publishers": [
         {
@@ -92,6 +97,7 @@
     "@typescript-eslint/parser": "^4.0.1",
     "css-loader": "^5.0.0",
     "electron": "13.0.1",
+    "electron-icon-maker": "0.0.5",
     "eslint": "^7.6.0",
     "eslint-plugin-import": "^2.20.0",
     "file-loader": "^6.2.0",
