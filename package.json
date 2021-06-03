@@ -1,7 +1,7 @@
 {
   "name": "Pixel",
   "productName": "Pixel",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "An IDE for p5js",
   "main": ".webpack/main",
   "scripts": {
