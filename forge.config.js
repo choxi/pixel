@@ -10,7 +10,8 @@ module.exports = {
     },
     osxNotarize: {
       appleId: process.env['APPLE_ID'],
-      appleIdPassword: process.env['APPLE_ID_PASSWORD']
+      appleIdPassword: process.env['APPLE_ID_PASSWORD'],
+      ascProvider: "9M9C2KP3Y8"
     },
   },
   "publishers": [
