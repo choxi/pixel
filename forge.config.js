@@ -6,7 +6,7 @@ module.exports = {
       'entitlements-inherit': './entitlements.plist',
       'gatekeeper-assess': false,
       hardenedRuntime: true,
-      identity: 'Apple Development: Roshan Choxi (Roshan Choxi)'
+      identity: 'Apple Development: Roshan Choxi (SC7ANJ9LFR)'
     },
     osxNotarize: {
       appleId: process.env['APPLE_ID'],
