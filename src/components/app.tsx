@@ -87,18 +87,6 @@ export default class App extends React.Component<Props, State> {
     this.setState({ snapshots: [] }, () => this.previewRef.current.contentWindow.location.reload())
   }
 
-  handleDraw() {
-    const { lastSnapshotID } = this.state
-    const canvas = this.previewRef.current.querySelector("canvas")
-    const id = (lastSnapshotID !== null) ? lastSnapshotID + 1 : 0
-    const snapshot = new Snapshot(id, canvas.toDataURL(), this.debugState)
-
-    this.state.snapshots.push(snapshot)
-    this.setState({ snapshots: this.state.snapshots, lastSnapshotID: id }, () => {
-      this.framesRef.current.scrollBy(this.framesRef.current.scrollWidth, 0)
-    })
-  }
-
   handleChange(code: string) {
     this.setState({ code: code, snapshots: [] })
   }
@@ -224,6 +212,7 @@ export default class App extends React.Component<Props, State> {
               <div className="preview layout-absolute-over" style={{ height: "100%", width: "100%" }}>
                 <iframe
                   ref={ this.previewRef }
+                  scrolling="no"
                   srcDoc={`
                     <html>
                       <style>
