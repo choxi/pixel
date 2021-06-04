@@ -131,7 +131,7 @@ export default class App extends React.Component<Props, State> {
   }
 
   restart() {
-
+    this.setState({ snapshots: [] }, () => this.updatePreview())
   }
 
   selectSnapshot(snapshot: Snapshot) {
