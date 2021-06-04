@@ -84,7 +84,7 @@ export default class App extends React.Component<Props, State> {
   }
 
   handleResize() {
-    // this.setState({ snapshots: [] }, () => this.updatePreview())
+    this.setState({ snapshots: [] }, () => this.previewRef.current.contentWindow.location.reload())
   }
 
   handleDraw() {
