@@ -68,6 +68,12 @@ export default class App extends React.Component<Props, State> {
     //@ts-ignore
     // p5.prototype.registerMethod("post", debug)
     this.updatePreview()
+
+    window.addEventListener('resize', () => this.handleResize(), false)
+  }
+
+  handleResize() {
+    this.setState({ snapshots: [] }, () => this.updatePreview())
   }
 
   handleDraw() {
@@ -90,6 +96,7 @@ export default class App extends React.Component<Props, State> {
     try {
       const preview = this.previewRef.current
       const w = { innerWidth: preview.clientWidth, innerHeight: preview.clientHeight }
+      console.log(`window: (${ w.innerWidth }, ${ w.innerHeight })`)
       const { code, play } = this.state
       // TODO: If the parse fails, check code for errors anyway so we can
       // return an error message. The acorn parser won't catch e.g. `ReferenceError`s.
