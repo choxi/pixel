@@ -125,15 +125,6 @@ export default class App extends React.Component<Props, State> {
       `
 
       return debugCode
-      // const sketch = new Function("p", "window", "__debugState", debugCode)
-      // TODO: Don't remove the old sketch until the new one works
-      // const oldP = this.p
-      // this.p = new p5(p => sketch(p, w, this.debugState), preview)
-      // oldP?.remove()
-
-      // if (!play) {
-      //   this.p.noLoop()
-      // }
     } catch(e) {
       console.log(e)
     }
@@ -143,7 +134,6 @@ export default class App extends React.Component<Props, State> {
     this.setState({ play: true, selectedSnapshot: null, lastSnapshotID: null }, () => {
       this.previewRef.current.contentWindow.postMessage({ event: "play" }, window.location.origin)
     })
-    // TODO: Make sure canvas is setup before calling `loop`
   }
 
   pause() {
