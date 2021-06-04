@@ -83,11 +83,10 @@ export default class App extends React.Component<Props, State> {
   }
 
   handleChange(code: string) {
-    this.setState({ code: code }, () => this.updatePreview())
+    this.setState({ code: code, snapshots: [] }, () => this.updatePreview())
   }
 
   updatePreview() {
-    console.log("updatePreview")
     try {
       const preview = this.previewRef.current
       const w = { innerWidth: preview.clientWidth, innerHeight: preview.clientHeight }
