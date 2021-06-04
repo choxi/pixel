@@ -150,7 +150,7 @@ export default class App extends React.Component<Props, State> {
 
 
   render() {
-    const { selectedSnapshot } = this.state
+    const { selectedSnapshot, play } = this.state
     // We need to set useWorker=false to fix the `Failed to
     // execute 'importScripts' on 'WorkerGlobalScope'` error
     // https://github.com/securingsincity/react-ace/issues/725
@@ -160,6 +160,17 @@ export default class App extends React.Component<Props, State> {
         {/* <div>{ snapshot.state }</div> */}
       </div>
     })
+
+    let playPausePartial
+    if (play) {
+      playPausePartial = <button onClick={ () => this.pause() }>
+        <i className="fas fa-pause text-light text-large spc"></i>
+      </button>
+    } else {
+      playPausePartial = <button onClick={ () => this.play() }>
+        <i className="fas fa-play text-light text-large spc"></i>
+      </button>
+    }
 
     let snapshot
     if (selectedSnapshot) {
@@ -223,12 +234,7 @@ export default class App extends React.Component<Props, State> {
           <button onClick={ () => this.restart() }>
             <i className="fas fa-redo text-light text-large spc"></i>
           </button>
-          <button onClick={ () => this.play() }>
-            <i className="fas fa-play text-light text-large spc"></i>
-          </button>
-          <button onClick={ () => this.pause() }>
-            <i className="fas fa-pause text-light text-large spc"></i>
-          </button>
+          { playPausePartial }
         </div>
       </div>
     </div>
