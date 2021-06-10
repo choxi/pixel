@@ -244,6 +244,10 @@ export default class App extends React.Component<Props, State> {
                                 return
                               }
 
+                              if (typeof value === "function") {
+                                return
+                              }
+
                               if (value && typeof value === "object") {
                                 newObj[key] = __copy(value, level + 1)
                               } else {
@@ -278,10 +282,12 @@ export default class App extends React.Component<Props, State> {
                             ${ debugCode }
                             const pushState = __copy(__debugState)
 
-                            debugger
-
                             const data = this.canvas.toDataURL()
-                            window.parent.postMessage({ event: "draw", image: data, state: pushState })
+                            try {
+                              window.parent.postMessage({ event: "draw", image: data, state: pushState })
+                            } catch(e) {
+                              console.log(e)
+                            }
 
                             if (!init) {
                               noLoop()
