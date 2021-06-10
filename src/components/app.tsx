@@ -7,6 +7,8 @@ import "ace-builds/src-noconflict/theme-tomorrow"
 import p5 from "p5"
 import * as acorn from "acorn"
 
+import Debugger from "../lib/debugger"
+
 // Convenient way to load p5 library for iframe
 //@ts-ignore
 // import url from "file-loader!p5"
@@ -45,13 +47,13 @@ function debug() {
 
 class Snapshot {
   imageURL: string
-  state: string
+  state: object
   id: number
 
   constructor(id: number, imageURL: string, state: object) {
     this.id = id
     this.imageURL = imageURL
-    this.state = JSON.stringify(state)
+    this.state = Debugger.copy(state)
   }
 }
 
@@ -96,7 +98,6 @@ export default class App extends React.Component<Props, State> {
     try {
       const preview = this.previewRef.current
       const w = { innerWidth: preview.clientWidth, innerHeight: preview.clientHeight }
-      console.log(`window: (${ w.innerWidth }, ${ w.innerHeight })`)
       const { code, play } = this.state
       // TODO: If the parse fails, check code for errors anyway so we can
       // return an error message. The acorn parser won't catch e.g. `ReferenceError`s.
@@ -207,7 +208,7 @@ export default class App extends React.Component<Props, State> {
               <div className="console layout-vert-bottom">
                 <p className="spc-n-zero">Console</p>
                 {
-                  selectedSnapshot?.state
+                  JSON.stringify(selectedSnapshot?.state)
                 }
               </div>
             </div>
