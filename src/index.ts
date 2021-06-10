@@ -40,7 +40,7 @@ const createWindow = (): void => {
     // We have to turn on node integration for p5:
     // https://github.com/electron-userland/electron-forge/issues/1852
     webPreferences: {
-      nodeIntegration: true,
+      nodeIntegration: false,
       contextIsolation: false,
       enableRemoteModule: true,
     }

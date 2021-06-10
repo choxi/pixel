@@ -4,14 +4,14 @@ import AceEditor from "react-ace"
 import "ace-builds/src-noconflict/mode-javascript"
 import "ace-builds/src-noconflict/theme-tomorrow"
 
-import p5 from "p5"
+// import p5 from "p5"
 import * as acorn from "acorn"
 
 import Debugger from "../lib/debugger"
 
 // Convenient way to load p5 library for iframe
-//@ts-ignore
-// import url from "file-loader!p5"
+// @ts-ignore
+import url from "file-loader!p5"
 
 interface Props {
 
@@ -27,15 +27,15 @@ interface State {
 
 const defaultCode = `
 const point = { x: 0, y: 0 }
-let x, y = 10
 
-p.setup = () => {
-  p.createCanvas(window.innerWidth, window.innerHeight)
-  p.background(255, 0, 0)
+function setup() {
+  createCanvas(window.innerWidth, window.innerHeight)
+  background(255, 0, 0)
+  noStroke()
 }
 
-p.draw = () => {
-  p.ellipse(point.x, point.y, 10)
+function draw() {
+  ellipse(point.x, point.y, 10)
   point.x += 1
   point.y += 1
 }
@@ -59,51 +59,49 @@ class Snapshot {
 
 export default class App extends React.Component<Props, State> {
   state: State = { code: defaultCode, snapshots: []as Array<Snapshot>, play: false }
-  previewRef: React.RefObject<HTMLDivElement> = React.createRef()
+  previewRef: React.RefObject<HTMLIFrameElement> = React.createRef()
   framesRef: React.RefObject<HTMLDivElement> = React.createRef()
-  p: p5
+  // p: p5
   debugState: any = {}
 
   componentDidMount() {
     //@ts-ignore
-    p5.prototype.registerMethod("post", () => this.handleDraw())
+    // p5.prototype.registerMethod("post", () => this.handleDraw())
     //@ts-ignore
     // p5.prototype.registerMethod("post", debug)
-    this.updatePreview()
+    // this.updatePreview()
 
     window.addEventListener('resize', () => this.handleResize(), false)
-  }
-
-  handleResize() {
-    this.setState({ snapshots: [] }, () => this.updatePreview())
-  }
-
-  handleDraw() {
-    const { lastSnapshotID } = this.state
-    const canvas = this.previewRef.current.querySelector("canvas")
-    const id = (lastSnapshotID !== null) ? lastSnapshotID + 1 : 0
-    const snapshot = new Snapshot(id, canvas.toDataURL(), this.debugState)
-
-    this.state.snapshots.push(snapshot)
-    this.setState({ snapshots: this.state.snapshots, lastSnapshotID: id }, () => {
-      this.framesRef.current.scrollBy(this.framesRef.current.scrollWidth, 0)
+    window.addEventListener("message", event => {
+      if (event.data.event === "draw") {
+        const { lastSnapshotID } = this.state
+        const id = (lastSnapshotID !== null) ? lastSnapshotID + 1 : 0
+        const snapshot = new Snapshot(id, event.data.image, event.data.state)
+        this.state.snapshots.push(snapshot)
+        this.setState({ snapshots: this.state.snapshots, lastSnapshotID: id }, () => {
+          this.framesRef.current.scrollBy(this.framesRef.current.scrollWidth, 0)
+        })
+      }
     })
   }
 
-  handleChange(code: string) {
-    this.setState({ code: code, snapshots: [] }, () => this.updatePreview())
+  handleResize() {
+    this.setState({ snapshots: [] }, () => this.previewRef.current.contentWindow.location.reload())
   }
 
-  updatePreview() {
+  handleChange(code: string) {
+    this.setState({ code: code, snapshots: [] })
+  }
+
+  injectDebugger(code: string) {
     try {
-      const preview = this.previewRef.current
-      const w = { innerWidth: preview.clientWidth, innerHeight: preview.clientHeight }
-      const { code, play } = this.state
-      // TODO: If the parse fails, check code for errors anyway so we can
-      // return an error message. The acorn parser won't catch e.g. `ReferenceError`s.
-      //
-      // Error line number is always eval error line minus 3
-      // https://stackoverflow.com/questions/3526902/tracing-the-source-line-of-an-error-in-a-javascript-eval
+      // const preview = this.previewRef.current
+      // const w = { innerWidth: preview.clientWidth, innerHeight: preview.clientHeight }
+      // // TODO: If the parse fails, check code for errors anyway so we can
+      // // return an error message. The acorn parser won't catch e.g. `ReferenceError`s.
+      // //
+      // // Error line number is always eval error line minus 3
+      // // https://stackoverflow.com/questions/3526902/tracing-the-source-line-of-an-error-in-a-javascript-eval
       const parsed = acorn.parse(code, { ecmaVersion: 2020 })
       //@ts-ignore
       const variables = parsed.body.filter(n => n.type === "VariableDeclaration")
@@ -115,31 +113,27 @@ export default class App extends React.Component<Props, State> {
         ${ code }
         ${ namesToProps.join("\n") }
       `
-      const sketch = new Function("p", "window", "__debugState", debugCode)
-      // TODO: Don't remove the old sketch until the new one works
-      const oldP = this.p
-      this.p = new p5(p => sketch(p, w, this.debugState), preview)
-      oldP?.remove()
 
-      if (!play) {
-        this.p.noLoop()
-      }
+      return debugCode
     } catch(e) {
       console.log(e)
     }
   }
 
   play() {
-    // TODO: Make sure canvas is setup before calling `loop`
-    this.setState({ play: true, selectedSnapshot: null, lastSnapshotID: null }, () => this.p.loop())
+    this.setState({ play: true, selectedSnapshot: null, lastSnapshotID: null }, () => {
+      this.previewRef.current.contentWindow.postMessage({ event: "play" }, window.location.origin)
+    })
   }
 
   pause() {
-    this.setState({ play: false }, () => this.p.noLoop())
+    this.setState({ play: false }, () => {
+      this.previewRef.current.contentWindow.postMessage({ event: "pause" }, window.location.origin)
+    })
   }
 
   restart() {
-    this.setState({ snapshots: [] }, () => this.updatePreview())
+    this.setState({ snapshots: [] }, () => this.previewRef.current.contentWindow.location.reload())
   }
 
   selectSnapshot(snapshot: Snapshot) {
@@ -158,16 +152,16 @@ export default class App extends React.Component<Props, State> {
 
 
   render() {
-    const { selectedSnapshot, play } = this.state
+    const { selectedSnapshot, play, code } = this.state
     // We need to set useWorker=false to fix the `Failed to
     // execute 'importScripts' on 'WorkerGlobalScope'` error
     // https://github.com/securingsincity/react-ace/issues/725
     const timelineFrames = this.state.snapshots.map((snapshot, index) => {
       return <div key={ index } className={ `timeline-frame ${ this.snapshotSelectionStyle(snapshot) }` }>
         <img src={ snapshot.imageURL } onClick={ () => this.selectSnapshot(snapshot) } />
-        {/* <div>{ snapshot.state }</div> */}
       </div>
     })
+
 
     let playPausePartial
     if (play) {
@@ -184,6 +178,8 @@ export default class App extends React.Component<Props, State> {
     if (selectedSnapshot) {
       snapshot = <img className="layout-absolute-over" style={{ height: "100%", width: "100%" }} src={ selectedSnapshot.imageURL } />
     }
+
+    const debugCode = this.injectDebugger(code)
 
     return <div className="layout-vstack">
       <div className="layout-fill">
@@ -215,7 +211,57 @@ export default class App extends React.Component<Props, State> {
           </div>
           <div className="layout-split-halfpanel">
             <div className="layout-absolute" style={{ height: "100%", width: "100%" }} >
-              <div className="preview layout-absolute-over" style={{ height: "100%", width: "100%" }} ref={ this.previewRef }>
+              <div className="preview layout-absolute-over" style={{ height: "100%", width: "100%" }}>
+                <iframe
+                  ref={ this.previewRef }
+                  scrolling="no"
+                  srcDoc={`
+                    <html>
+                      <style>
+                        html, body {
+                          padding: 0;
+                          margin: 0;
+                        }
+                      </style>
+
+                      <body>
+                        <script src="${ url }"></script>
+                        <script>
+                          window.addEventListener("message", message => {
+                            if (message.data.event === "pause") {
+                              noLoop()
+                            }
+
+                            if (message.data.event === "play") {
+                              loop()
+                            }
+                          })
+
+                          const __debugState = {}
+                          let init = false
+                          let time = -1
+
+                          p5.prototype.registerMethod("post", () => {
+                            time++
+
+                            if (t % 100 !== 0) {
+                              return
+                            }
+
+                            const data = this.canvas.toDataURL()
+                            window.parent.postMessage({ event: "draw", image: data, state: __debugState })
+
+                            if (!init) {
+                              noLoop()
+                              init = true
+                            }
+                          })
+
+                          ${ debugCode }
+                        </script>
+                      </body>
+                    </html>
+                  `} />
               </div>
               { snapshot }
             </div>
@@ -223,22 +269,10 @@ export default class App extends React.Component<Props, State> {
         </div>
       </div>
       <div className="timeline">
-        <div className="layout-hstack pad-n" ref={ this.framesRef }>
+        <div className="layout-hstack pad-n" ref={ this.framesRef } style={{ minHeight: "80px" }}>
           { timelineFrames }
         </div>
         <div className="layout-hstack-centered">
-          {/* <iframe srcDoc={`
-            <html>
-              <body>
-                <script src="${ url }"></script>
-                <script>
-                  function setup() {
-                    background(255, 0, 0)
-                  }
-                </script>
-              </body>
-            </html>
-          `} /> */}
           <button onClick={ () => this.restart() }>
             <i className="fas fa-redo text-light text-large spc"></i>
           </button>
