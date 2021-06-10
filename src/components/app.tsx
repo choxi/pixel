@@ -110,7 +110,6 @@ export default class App extends React.Component<Props, State> {
       //@ts-ignore
       const namesToProps = names.map(name => `__debugState.${ name } = ${ name }`)
       const debugCode = `
-        ${ code }
         ${ namesToProps.join("\n") }
       `
 
@@ -227,6 +226,34 @@ export default class App extends React.Component<Props, State> {
                       <body>
                         <script src="${ url }"></script>
                         <script>
+                          function __copy(object, level=0) {
+                            if (level > 3) {
+                              return null
+                            }
+
+                            const newObj = {}
+
+                            Object.keys(object).forEach(key => {
+                              const value = object[key]
+
+                              if (key === "p5") {
+                                return
+                              }
+
+                              if (value._pInst) {
+                                return
+                              }
+
+                              if (value && typeof value === "object") {
+                                newObj[key] = __copy(value, level + 1)
+                              } else {
+                                newObj[key] = value
+                              }
+                            })
+
+                            return newObj
+                          }
+
                           window.addEventListener("message", message => {
                             if (message.data.event === "pause") {
                               noLoop()
@@ -244,12 +271,17 @@ export default class App extends React.Component<Props, State> {
                           p5.prototype.registerMethod("post", () => {
                             time++
 
-                            if (t % 100 !== 0) {
+                            if (time % 100 !== 0) {
                               return
                             }
 
+                            ${ debugCode }
+                            const pushState = __copy(__debugState)
+
+                            debugger
+
                             const data = this.canvas.toDataURL()
-                            window.parent.postMessage({ event: "draw", image: data, state: __debugState })
+                            window.parent.postMessage({ event: "draw", image: data, state: pushState })
 
                             if (!init) {
                               noLoop()
@@ -257,7 +289,7 @@ export default class App extends React.Component<Props, State> {
                             }
                           })
 
-                          ${ debugCode }
+                          ${ code }
                         </script>
                       </body>
                     </html>
