@@ -26,18 +26,13 @@ interface State {
 }
 
 const defaultCode = `
-const point = { x: 0, y: 0 }
-
 function setup() {
   createCanvas(window.innerWidth, window.innerHeight)
   background(255, 0, 0)
-  noStroke()
 }
 
 function draw() {
-  ellipse(point.x, point.y, 10)
-  point.x += 1
-  point.y += 1
+
 }
 `
 
