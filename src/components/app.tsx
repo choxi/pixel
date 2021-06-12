@@ -7,7 +7,8 @@ import "ace-builds/src-noconflict/theme-tomorrow"
 // import p5 from "p5"
 import * as acorn from "acorn"
 
-import Debugger from "../lib/debugger"
+// @ts-ignore
+import debuggerSrc from "file-loader!../lib/debugger"
 
 // Convenient way to load p5 library for iframe
 // @ts-ignore
@@ -19,6 +20,7 @@ interface Props {
 
 interface State {
   code: string
+  draftCode: string
   snapshots: Array<Snapshot>
   play: boolean
   selectedSnapshot?: Snapshot
@@ -48,12 +50,12 @@ class Snapshot {
   constructor(id: number, imageURL: string, state: object) {
     this.id = id
     this.imageURL = imageURL
-    this.state = Debugger.copy(state)
+    this.state = state
   }
 }
 
 export default class App extends React.Component<Props, State> {
-  state: State = { code: defaultCode, snapshots: []as Array<Snapshot>, play: false }
+  state: State = { code: defaultCode, draftCode: "", snapshots: [] as Array<Snapshot>, play: false }
   previewRef: React.RefObject<HTMLIFrameElement> = React.createRef()
   framesRef: React.RefObject<HTMLDivElement> = React.createRef()
   // p: p5
@@ -85,7 +87,7 @@ export default class App extends React.Component<Props, State> {
   }
 
   handleChange(code: string) {
-    this.setState({ code: code, snapshots: [] })
+    this.setState({ draftCode: code })
   }
 
   injectDebugger(code: string) {
@@ -126,8 +128,12 @@ export default class App extends React.Component<Props, State> {
     })
   }
 
+  update() {
+    this.setState({ snapshots: [], code: this.state.draftCode }, () => this.previewRef.current.contentWindow.location.reload())
+  }
+
   restart() {
-    this.setState({ snapshots: [] }, () => this.previewRef.current.contentWindow.location.reload())
+    this.setState({ snapshots: [], code: this.state.draftCode }, () => this.previewRef.current.contentWindow.location.reload())
   }
 
   selectSnapshot(snapshot: Snapshot) {
@@ -144,8 +150,32 @@ export default class App extends React.Component<Props, State> {
     return selectedSnapshot.id === snapshot.id ? "timeline-frame--selected" : ""
   }
 
+  togglePlay() {
+    const { play } = this.state
+
+    if (play) {
+      this.pause()
+      return
+    }
+
+    this.play()
+  }
+
+  componentDidUpdate() {
+    // if (this.state.play) {
+    //   this.previewRef.current.contentWindow.postMessage({ event: "play" }, window.location.origin)
+    //   return
+    // }
+
+    // this.previewRef.current.contentWindow.postMessage({ event: "pause" }, window.location.origin)
+  }
 
   render() {
+    const commands =  [
+      { name: "update", bindKey: { win: "Shift-Return", mac: "Shift-Return" }, exec: () => this.update() },
+      { name: "togglePlay", bindKey: { win: "Ctrl-Space", mac: "Shift-Space" }, exec: () => this.togglePlay() }
+    ]
+
     const { selectedSnapshot, play, code } = this.state
     // We need to set useWorker=false to fix the `Failed to
     // execute 'importScripts' on 'WorkerGlobalScope'` error
@@ -192,7 +222,8 @@ export default class App extends React.Component<Props, State> {
                   onChange={ code => this.handleChange(code) }
                   editorProps={{ $blockScrolling: true }}
                   setOptions={{ useWorker: false }}
-                  fontSize={ 14 } />
+                  fontSize={ 14 }
+                  commands={ commands } />
               </div>
 
               <div className="console layout-vert-bottom">
@@ -220,45 +251,19 @@ export default class App extends React.Component<Props, State> {
 
                       <body>
                         <script src="${ url }"></script>
+                        <script src="${ debuggerSrc }"></script>
                         <script>
-                          function __copy(object, level=0) {
-                            if (level > 3) {
-                              return null
-                            }
-
-                            const newObj = {}
-
-                            Object.keys(object).forEach(key => {
-                              const value = object[key]
-
-                              if (key === "p5") {
-                                return
-                              }
-
-                              if (value._pInst) {
-                                return
-                              }
-
-                              if (typeof value === "function") {
-                                return
-                              }
-
-                              if (value && typeof value === "object") {
-                                newObj[key] = __copy(value, level + 1)
-                              } else {
-                                newObj[key] = value
-                              }
-                            })
-
-                            return newObj
-                          }
-
+                          console.log("sandbox")
                           window.addEventListener("message", message => {
+                            console.log("sandbox#message")
+
                             if (message.data.event === "pause") {
+                              console.log("sandbox#pause")
                               noLoop()
                             }
 
                             if (message.data.event === "play") {
+                              console.log("sandbox#play")
                               loop()
                             }
                           })
@@ -275,9 +280,10 @@ export default class App extends React.Component<Props, State> {
                             }
 
                             ${ debugCode }
-                            const pushState = __copy(__debugState)
 
+                            const pushState = Debugger.copy(__debugState)
                             const data = this.canvas.toDataURL()
+
                             try {
                               window.parent.postMessage({ event: "draw", image: data, state: pushState })
                             } catch(e) {

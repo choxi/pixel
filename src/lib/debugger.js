@@ -1,4 +1,4 @@
-export default class Debugger {
+class Debugger {
   static copy(object, level=0) {
     if (level > 3) {
       return null
@@ -10,6 +10,14 @@ export default class Debugger {
       const value = object[key]
 
       if (key === "p5") {
+        return
+      }
+
+      if (value._pInst) {
+        return
+      }
+
+      if (typeof value === "function") {
         return
       }
 
