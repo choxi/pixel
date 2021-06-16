@@ -25,6 +25,8 @@ interface State {
   play: boolean
   selectedSnapshot?: Snapshot
   lastSnapshotID?: number
+  draw: boolean
+  mouseDown: boolean
 }
 
 const defaultCode = `
@@ -55,9 +57,20 @@ class Snapshot {
 }
 
 export default class App extends React.Component<Props, State> {
-  state: State = { code: defaultCode, draftCode: "", snapshots: [] as Array<Snapshot>, play: false }
+  state: State = {
+    code: defaultCode,
+    draftCode: "",
+    snapshots: [] as Array<Snapshot>,
+    play: false,
+    draw: false,
+    mouseDown: false
+  }
+
   previewRef: React.RefObject<HTMLIFrameElement> = React.createRef()
   framesRef: React.RefObject<HTMLDivElement> = React.createRef()
+  drawRef: React.RefObject<HTMLDivElement> = React.createRef()
+  editorRef: AceEditor
+
   // p: p5
   debugState: any = {}
 
@@ -170,6 +183,24 @@ export default class App extends React.Component<Props, State> {
     // this.previewRef.current.contentWindow.postMessage({ event: "pause" }, window.location.origin)
   }
 
+  handleMouseDown(event: React.MouseEvent) {
+    this.setState({ mouseDown: true })
+    console.log(`mouseDown: ${ event.clientX }`)
+  }
+
+  handleMouseMove(event: React.MouseEvent) {
+  }
+
+  handleMouseUp(event: React.MouseEvent) {
+    // @ts-ignore
+    const { offsetLeft, offsetTop } = event.target.offsetParent
+    const x = event.clientX - offsetLeft
+    const y = event.clientY - offsetTop
+
+    this.editorRef.editor.insert(`${ x }, ${ y }`)
+    this.setState({ mouseDown: false })
+  }
+
   render() {
     const commands =  [
       { name: "update", bindKey: { win: "Shift-Return", mac: "Shift-Return" }, exec: () => this.update() },
@@ -223,7 +254,8 @@ export default class App extends React.Component<Props, State> {
                   editorProps={{ $blockScrolling: true }}
                   setOptions={{ useWorker: false }}
                   fontSize={ 14 }
-                  commands={ commands } />
+                  commands={ commands }
+                  ref={ r => this.editorRef = r } />
               </div>
 
               <div className="console layout-vert-bottom">
@@ -236,6 +268,14 @@ export default class App extends React.Component<Props, State> {
           </div>
           <div className="layout-split-halfpanel">
             <div className="layout-absolute" style={{ height: "100%", width: "100%" }} >
+              <div
+                className="draw layout-absolute-over"
+                style={{ height: "100%", width: "100%", zIndex: 100, background: "transperent" }}
+                onMouseDown={ e => this.handleMouseDown(e) }
+                onMouseMove={ e => this.handleMouseMove(e) }
+                onMouseUp={ e => this.handleMouseUp(e) } >
+              </div>
+
               <div className="preview layout-absolute-over" style={{ height: "100%", width: "100%" }}>
                 <iframe
                   ref={ this.previewRef }
