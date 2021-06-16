@@ -14,6 +14,16 @@ import debuggerSrc from "file-loader!../lib/debugger"
 // @ts-ignore
 import url from "file-loader!p5"
 
+class Point {
+  x: number
+  y: number
+
+  constructor(x: number, y: number) {
+    this.x = x
+    this.y = y
+  }
+}
+
 interface Props {
 
 }
@@ -27,6 +37,7 @@ interface State {
   lastSnapshotID?: number
   draw: boolean
   mouseDown: boolean
+  shape: Array<Point>
 }
 
 const defaultCode = `
@@ -63,7 +74,8 @@ export default class App extends React.Component<Props, State> {
     snapshots: [] as Array<Snapshot>,
     play: false,
     draw: false,
-    mouseDown: false
+    mouseDown: false,
+    shape: [] as Array<Point>
   }
 
   previewRef: React.RefObject<HTMLIFrameElement> = React.createRef()
@@ -184,21 +196,56 @@ export default class App extends React.Component<Props, State> {
   }
 
   handleMouseDown(event: React.MouseEvent) {
-    this.setState({ mouseDown: true })
-    console.log(`mouseDown: ${ event.clientX }`)
+    const point = this.mouseToCanvasCoords(event)
+    const shape = [...this.state.shape, point]
+    this.setState({ mouseDown: true, shape: shape })
+    this.copyToClipboard(this.shapeToP5(shape))
+  }
+
+  shapeToP5(shape: Array<Point>): string {
+    const lines = shape.map(point => {
+      return `vertex(${ point.x }, ${ point.y })`
+    })
+
+    return `\nbeginShape()\n${ lines.join("\n") }\nendShape(CLOSE)\n`
   }
 
   handleMouseMove(event: React.MouseEvent) {
   }
 
   handleMouseUp(event: React.MouseEvent) {
+    // const point = this.mouseToCanvasCoords(event)
+    // const shape = [...this.state.shape, point]
+    // this.setState({ shape: shape })
+  }
+
+  mouseToCanvasCoords(event: React.MouseEvent): Point {
     // @ts-ignore
     const { offsetLeft, offsetTop } = event.target.offsetParent
     const x = event.clientX - offsetLeft
     const y = event.clientY - offsetTop
 
-    this.editorRef.editor.insert(`${ x }, ${ y }`)
-    this.setState({ mouseDown: false })
+    return new Point(x, y)
+  }
+
+  copyToClipboard(str: string) {
+    const el = document.createElement('textarea')
+    el.value = str
+    document.body.appendChild(el)
+    el.select()
+    document.execCommand('copy')
+    document.body.removeChild(el)
+  }
+
+  handleCanvasKey(e: React.KeyboardEvent) {
+    console.log(e.key)
+    if (e.key === "Enter") {
+      this.setState({ shape: [] })
+    }
+  }
+
+  handlePaste(text: any) {
+    this.setState({ shape: [] })
   }
 
   render() {
@@ -236,6 +283,21 @@ export default class App extends React.Component<Props, State> {
 
     const debugCode = this.injectDebugger(code)
 
+    let shapeTrace
+    if (this.state.shape.length > 0) {
+      let lastPoint = this.state.shape[0]
+      const commands = this.state.shape.slice(1, this.state.shape.length).map((point, index) => {
+        const type = index === 0 ? "M" : "L"
+        const line = <line stroke="black" key={ index } x1={ lastPoint.x } y1={ lastPoint.y } x2={ point.x } y2={ point.y }></line>
+        lastPoint = point
+        return line
+      })
+
+      shapeTrace = <svg width="100%" height="100%">
+        { commands }
+      </svg>
+    }
+
     return <div className="layout-vstack">
       <div className="layout-fill">
         <div className="layout-split">
@@ -255,7 +317,9 @@ export default class App extends React.Component<Props, State> {
                   setOptions={{ useWorker: false }}
                   fontSize={ 14 }
                   commands={ commands }
-                  ref={ r => this.editorRef = r } />
+                  ref={ r => this.editorRef = r }
+                  onPaste={ text => this.handlePaste(text) }
+                  />
               </div>
 
               <div className="console layout-vert-bottom">
@@ -266,14 +330,21 @@ export default class App extends React.Component<Props, State> {
               </div>
             </div>
           </div>
-          <div className="layout-split-halfpanel">
+          <div className="layout-split-halfpanel"
+                onKeyDown={ e => this.handleCanvasKey(e) }>
             <div className="layout-absolute" style={{ height: "100%", width: "100%" }} >
               <div
                 className="draw layout-absolute-over"
                 style={{ height: "100%", width: "100%", zIndex: 100, background: "transperent" }}
                 onMouseDown={ e => this.handleMouseDown(e) }
                 onMouseMove={ e => this.handleMouseMove(e) }
-                onMouseUp={ e => this.handleMouseUp(e) } >
+                onMouseUp={ e => this.handleMouseUp(e) }>
+              </div>
+
+              <div
+                className="draw layout-absolute-over"
+                style={{ height: "100%", width: "100%", zIndex: 99, background: "transperent" }}>
+                { shapeTrace }
               </div>
 
               <div className="preview layout-absolute-over" style={{ height: "100%", width: "100%" }}>
