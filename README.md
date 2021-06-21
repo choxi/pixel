@@ -30,7 +30,7 @@ $ npm install
 $ npm start
 ```
 
-# Builds and Releases
+## Builds and Releases
 
 https://dev.to/erikhofer/build-and-publish-a-multi-platform-electron-app-on-github-3lnd
 
