@@ -41,9 +41,12 @@ interface State {
 }
 
 const defaultCode = `
+const width = window.innerWidth
+const height = window.innerHeight
+
 function setup() {
-  createCanvas(window.innerWidth, window.innerHeight)
-  background(255, 0, 0)
+  createCanvas(width, height)
+  background(0)
 }
 
 function draw() {
@@ -288,7 +291,7 @@ export default class App extends React.Component<Props, State> {
       let lastPoint = this.state.shape[0]
       const commands = this.state.shape.slice(1, this.state.shape.length).map((point, index) => {
         const type = index === 0 ? "M" : "L"
-        const line = <line stroke="black" key={ index } x1={ lastPoint.x } y1={ lastPoint.y } x2={ point.x } y2={ point.y }></line>
+        const line = <line stroke="magenta" stroke-width="3" key={ index } x1={ lastPoint.x } y1={ lastPoint.y } x2={ point.x } y2={ point.y }></line>
         lastPoint = point
         return line
       })
