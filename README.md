@@ -4,7 +4,7 @@ Pixel is an integrated developer environment (IDE) for p5js. It includes a timel
 
 Download v1.0.1:
 
-- [Mac]()
+- [Mac](https://github.com/choxi/pixel/releases/download/v1.0.1/Pixel-darwin-x64-1.0.1.zip)
 - [Windows](https://github.com/choxi/pixel/releases/download/v1.0.1/Pixel-1.0.1.Setup.exe)
 - [Linux](https://github.com/choxi/pixel/releases/download/v1.0.1/pixel_1.0.1_amd64.deb)
 
