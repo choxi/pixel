@@ -2,6 +2,14 @@
 
 Pixel is an integrated developer environment (IDE) for p5js. It includes a timeline debugger, vector drawing tool, and runs as a desktop application on Mac, Windows, and Linux.
 
+Download v1.0.1:
+
+- [Mac]()
+- [Windows](https://github.com/choxi/pixel/releases/download/v1.0.1/Pixel-1.0.1.Setup.exe)
+- [Linux](https://github.com/choxi/pixel/releases/download/v1.0.1/pixel_1.0.1_amd64.deb)
+
+See [Releases](https://github.com/choxi/pixel/releases/tag/v1.0.1) for more info.
+
 ## Features
 
 Pixel helps you debug complicated animations by saving snapshots of your sketch. You can click on any frame in the timeline to see what value your variables are at that point, which is useful for debugging.
